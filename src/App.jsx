@@ -1,25 +1,25 @@
-//src/App.jsx
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
-//Paginas
-import Login from "./Login";
-import Dashboard from "./Dashboard";
-import History from "./History";
-import Alerts from "./Alerts";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import History from "./pages/History";
+import Alerts from "./pages/Alerts";
+import Users from "./pages/Users";
 
 export default function App() {
-    return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                    <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                    <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
-                </Routes>
-            </BrowserRouter>
-        </AuthProvider>
-    );
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+        <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
+        <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AuthProvider>
+  );
 }

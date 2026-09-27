@@ -1,0 +1,294 @@
+/* MONITOR QUINTILLIZAS - DESIGN SYSTEM & THEME
+   Inspirado en "The Quintessential Quintuplets" (Go-Tōbun no Hanayome) */
+
+:root {
+  /* Core Dark Theme Palette */
+  --bg-primary: #0b0f19;
+  --bg-secondary: #0f172a;
+  --bg-card: rgba(17, 24, 39, 0.72);
+  --bg-card-hover: rgba(30, 41, 59, 0.85);
+  --bg-input: rgba(15, 23, 42, 0.65);
+  --bg-glass: rgba(255, 255, 255, 0.035);
+  --bg-glass-active: rgba(255, 255, 255, 0.08);
+
+  /* Borders & Minimalist Flat Aesthetics */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.18);
+  --border-glow: rgba(171, 71, 188, 0.4);
+
+  /* Typography Colors */
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+
+  /* Colores de Acento de las Hermanas Nakano */
+  /* Nino Nakano - GPU, Alertas & Botones */
+  --nino-purple: #AB47BC;
+  --nino-light: #CE93D8;
+  --nino-glow: rgba(171, 71, 188, 0.35);
+  --nino-bg: rgba(171, 71, 188, 0.12);
+
+  /* Ichika Nakano - Ethernet / Red / Selector Principal */
+  --ichika-yellow: #FFD180;
+  --ichika-dark: #FFB74D;
+  --ichika-glow: rgba(255, 209, 128, 0.35);
+  --ichika-bg: rgba(255, 209, 128, 0.12);
+
+  /* Miku Nakano - Memoria RAM (Azul Analítico) */
+  --miku-blue: #42A5F5;
+  --miku-dark: #1E88E5;
+  --miku-glow: rgba(66, 165, 245, 0.35);
+  --miku-bg: rgba(66, 165, 245, 0.12);
+
+  /* Yotsuba Nakano - Disco / Almacenamiento (Verde Disponible) */
+  --yotsuba-green: #66BB6A;
+  --yotsuba-dark: #43A047;
+  --yotsuba-glow: rgba(102, 187, 106, 0.35);
+  --yotsuba-bg: rgba(102, 187, 106, 0.12);
+
+  /* Itsuki Nakano - Procesador CPU (Rojo Carga / Advertencia) */
+  --itsuki-red: #EF5350;
+  --itsuki-dark: #E53935;
+  --itsuki-glow: rgba(239, 83, 80, 0.35);
+  --itsuki-bg: rgba(239, 83, 80, 0.12);
+
+  /* Shadows */
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.45), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 25px -5px var(--nino-glow);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+
+  /* Font Families */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--nino-purple);
+}
+
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+}
+
+.glass-panel:hover {
+  border-color: var(--border-hover);
+}
+
+.glass-panel-glow-nino:hover {
+  border-color: rgba(171, 71, 188, 0.4);
+  box-shadow: 0 12px 30px -8px var(--nino-glow);
+}
+
+.glass-panel-glow-cpu:hover {
+  border-color: rgba(239, 83, 80, 0.45);
+  box-shadow: 0 12px 30px -8px var(--itsuki-glow);
+}
+
+.glass-panel-glow-ram:hover {
+  border-color: rgba(66, 165, 245, 0.45);
+  box-shadow: 0 12px 30px -8px var(--miku-glow);
+}
+
+.glass-panel-glow-disk:hover {
+  border-color: rgba(102, 187, 106, 0.45);
+  box-shadow: 0 12px 30px -8px var(--yotsuba-glow);
+}
+
+.glass-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.glass-input:focus {
+  border-color: var(--nino-purple);
+  box-shadow: 0 0 0 2px rgba(171, 71, 188, 0.25);
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.glass-input::placeholder {
+  color: var(--text-dim);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.99);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #AB47BC 0%, #8E24AA 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(171, 71, 188, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #BA68C8 0%, #9C27B0 100%);
+  box-shadow: 0 6px 22px rgba(171, 71, 188, 0.5);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: var(--bg-glass);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  backdrop-filter: blur(8px);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-glass-active);
+  border-color: var(--border-hover);
+  color: #ffffff;
+}
+
+.btn-danger {
+  background: rgba(239, 83, 80, 0.15);
+  color: #ef5350;
+  border: 1px solid rgba(239, 83, 80, 0.3);
+}
+
+.btn-danger:hover {
+  background: rgba(239, 83, 80, 0.25);
+  border-color: #ef5350;
+  color: #ff8684;
+}
+
+.badge-sister {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-radius: 2px;
+  border: 1px solid transparent;
+}
+
+.badge-itsuki {
+  background: var(--itsuki-bg);
+  color: var(--itsuki-red);
+  border-color: rgba(239, 83, 80, 0.3);
+}
+
+.badge-miku {
+  background: var(--miku-bg);
+  color: var(--miku-blue);
+  border-color: rgba(66, 165, 245, 0.3);
+}
+
+.badge-yotsuba {
+  background: var(--yotsuba-bg);
+  color: var(--yotsuba-green);
+  border-color: rgba(102, 187, 106, 0.3);
+}
+
+.badge-ichika {
+  background: var(--ichika-bg);
+  color: var(--ichika-yellow);
+  border-color: rgba(255, 209, 128, 0.3);
+}
+
+.badge-nino {
+  background: var(--nino-bg);
+  color: var(--nino-purple);
+  border-color: rgba(171, 71, 188, 0.3);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(1.03); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite ease-in-out;
+}
+
+.animate-float {
+  animation: float 4s infinite ease-in-out;
+}
+
+.sister-dots-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sister-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  box-shadow: 0 0 6px currentColor;
+  transition: transform 0.2s ease;
+}
+
+.sister-dot:hover {
+  transform: scale(1.3);
+}
