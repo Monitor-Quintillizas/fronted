@@ -156,7 +156,7 @@ Genera la compilación minificada y optimizada en la carpeta `dist/`.
 
 ---
 
-## 7. Banco de Preguntas y Respuestas para Evaluación Oral (Frontend)
+## 7. Banco de Preguntas y Respuestas (Frontend)
 
 1. **¿Qué es un componente y en qué se diferencia de una función normal?**  
    *Respuesta:* Un componente es una función reutilizable que retorna elementos de interfaz en formato JSX y participa en el ciclo de vida reactivo de React. A diferencia de una función ordinaria de JavaScript que solo ejecuta instrucciones o cálculos matemáticos, un componente se enlaza al Virtual DOM para proyectar y actualizar la interfaz visual de forma declarativa.
