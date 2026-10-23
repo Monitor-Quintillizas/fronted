@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { authService } from '../services/authService';
+import { useRegisterMutation } from '../services/authApi';
 import {
   Cpu,
   User,
@@ -19,6 +19,7 @@ import {
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [registerMutation] = useRegisterMutation();
 
   const [mode, setMode] = useState('login');
 
@@ -57,7 +58,7 @@ export default function Login() {
       }
     } catch (err) {
       console.error("Error en login:", err);
-      const serverMsg = err.response?.data?.Error?.Description || err.response?.data?.mensaje;
+      const serverMsg = err.data?.Error?.Description || err.data?.mensaje || err.response?.data?.mensaje;
       setErrorMessage(serverMsg || "No se pudo conectar con el servidor backend.");
     } finally {
       setLoading(false);
@@ -93,11 +94,11 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await authService.register(
-        regUsername.trim(),
-        regEmail.trim() || `${regUsername.trim().toLowerCase()}@monitor.local`,
-        regPassword
-      );
+      const res = await registerMutation({
+        username: regUsername.trim(),
+        email: regEmail.trim() || `${regUsername.trim().toLowerCase()}@monitor.local`,
+        password: regPassword
+      }).unwrap();
 
       if (res && res.ok) {
         setSuccessMessage("¡Cuenta creada exitosamente! Iniciando sesión...");
@@ -116,7 +117,7 @@ export default function Login() {
       }
     } catch (err) {
       console.error("Error en registro:", err);
-      const serverMsg = err.response?.data?.Error?.Description || err.response?.data?.mensaje;
+      const serverMsg = err.data?.Error?.Description || err.data?.mensaje || err.response?.data?.mensaje;
       setErrorMessage(serverMsg || "Error al procesar el registro en el backend.");
     } finally {
       setLoading(false);

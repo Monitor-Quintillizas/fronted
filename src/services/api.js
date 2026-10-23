@@ -1,44 +1,50 @@
-import axios from 'axios';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { loggedOut } from '../features/auth/authSlice';
 
 /**
- * Instancia central de Axios para el Frontend.
- * Regla de Desarrollo: La URL base se obtiene de variables de entorno y NUNCA se hardcodea en componentes.
+ * BaseQuery central con fetchBaseQuery de RTK Query.
+ * Configura baseUrl, timeout, credenciales y prepareHeaders con Bearer token.
  */
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/services.php',
-  timeout: 10000,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: import.meta.env.VITE_API_URL || 'http://localhost:8000/services.php',
+  credentials: 'include', // Equivale a withCredentials: true de axios
+  timeout: 10000,         // Equivale al timeout de 10s de axios
+  prepareHeaders: (headers, { getState }) => {
+    const token = getState()?.auth?.token || localStorage.getItem('token');
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`);
+    }
+    return headers;
+  },
 });
 
-// Interceptor de Petición: Inyecta el Token de sesión en el encabezado Authorization
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+/**
+ * Wrapper de BaseQuery que replica el interceptor de respuesta de Axios:
+ * Si el servidor responde 401 (no autorizado / sesión expirada),
+ * limpia la sesión en el store y el caché de RTK Query (a menos que estemos en /login).
+ */
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+  const result = await rawBaseQuery(args, api, extraOptions);
 
-// Interceptor de Respuesta: Maneja expiración de sesión (401) y normaliza errores
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      // Si la sesión expiró en el backend, limpiar sesión local si no estamos ya en login
-      if (window.location.pathname !== '/login') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
+  if (result.error && result.error.status === 401) {
+    const isLoginEndpoint = typeof args === 'object' && args?.params?.action === 'login';
+    if (!isLoginEndpoint && window.location.pathname !== '/login') {
+      api.dispatch(loggedOut());
+      api.dispatch(api.util.resetApiState());
     }
-    return Promise.reject(error);
   }
-);
+
+  return result;
+};
+
+/**
+ * Instancia central de createApi según la propuesta de integración RTK Query.
+ */
+export const api = createApi({
+  reducerPath: 'api',
+  baseQuery: baseQueryWithReauth,
+  tagTypes: ['Host', 'Threshold', 'Alert', 'Metric', 'User'],
+  endpoints: () => ({}),
+});
 
 export default api;

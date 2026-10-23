@@ -1,95 +1,80 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { metricsService } from '../services/metricsService';
+import { useState, useEffect, useRef } from 'react';
+import { useGetMetricsQuery } from '../services/metricsApi';
 
 /**
- * Custom Hook: useMetrics
- * Sondeo periódico optimizado y resiliente para telemetría en tiempo real.
- * Implementa filtro de desconexión transitoria para evitar parpadeos visuales.
+ * Custom Hook: useMetrics (adaptado a RTK Query)
+ * Conserva el buffer de los últimos 30 puntos para la gráfica estilo Administrador de Tareas
+ * y el filtro de desconexión tras 3 fallos consecutivos, sustituyendo setInterval por pollingInterval.
  */
 export function useMetrics(hostId = 1, intervalMs = 2500) {
-  const [metrics, setMetrics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [alertTriggered, setAlertTriggered] = useState(false);
-  const [activeAlerts, setActiveAlerts] = useState([]);
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const {
+    data: res,
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useGetMetricsQuery(hostId, {
+    pollingInterval: intervalMs,
+  });
+
   const [liveChartData, setLiveChartData] = useState([]);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [reportedError, setReportedError] = useState(null);
 
-  const isMountedRef = useRef(true);
   const consecutiveFailuresRef = useRef(0);
+  const lastProcessedStampRef = useRef(null);
 
-  const fetchMetrics = useCallback(async () => {
-    try {
-      const res = await metricsService.getMetrics(hostId);
+  // Procesamiento de respuesta válida y alimentación del buffer
+  useEffect(() => {
+    if (res && res.ok && res.data) {
+      consecutiveFailuresRef.current = 0;
+      setReportedError(null);
 
-      if (!isMountedRef.current) return;
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-MX', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      setLastUpdated(timeStr);
 
-      if (res && res.ok && res.data) {
-        // Reiniciar contador de fallas consecutivas
-        consecutiveFailuresRef.current = 0;
-        setError(null);
-
-        setMetrics(res.data);
-        setAlertTriggered(Boolean(res.alert_triggered));
-        setActiveAlerts(res.active_alerts || []);
-        
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        setLastUpdated(timeStr);
-
-        // Actualizar cola de puntos de la gráfica (últimos 30 puntos para estilo Administrador de Tareas)
+      // Usar referencia para evitar empujar puntos duplicados en el mismo tick
+      if (res !== lastProcessedStampRef.current) {
+        lastProcessedStampRef.current = res;
         setLiveChartData((prev) => {
           const newPoint = {
             time: timeStr.slice(3, 8), // mm:ss
             cpu: Number(res.data.cpu_usage_pct) || 0,
             ram: Number(res.data.ram_usage_pct) || 0,
-            disk: Number(res.data.disk_usage_pct) || 0
+            disk: Number(res.data.disk_usage_pct) || 0,
           };
           const updated = [...prev, newPoint];
           return updated.length > 30 ? updated.slice(updated.length - 30) : updated;
         });
       }
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      
+    }
+  }, [res]);
+
+  // Manejo de la regla de tolerancia a 3 fallos consecutivos
+  useEffect(() => {
+    if (isError) {
       consecutiveFailuresRef.current += 1;
-      // Solo reportar desconexión si fallan 3 intentos consecutivos para evitar parpadeos
       if (consecutiveFailuresRef.current >= 3) {
-        console.error("Falla reiterada al consultar telemetría:", err);
-        setError("El backend no responde tras múltiples intentos.");
-      }
-    } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
+        setReportedError('El backend no responde tras múltiples intentos.');
       }
     }
-  }, [hostId]);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    consecutiveFailuresRef.current = 0;
-    setLoading(true);
-
-    fetchMetrics();
-
-    const timer = setInterval(() => {
-      fetchMetrics();
-    }, intervalMs);
-
-    return () => {
-      isMountedRef.current = false;
-      clearInterval(timer);
-    };
-  }, [fetchMetrics, intervalMs]);
+  }, [isError, queryError]);
 
   return {
-    metrics,
-    loading,
-    error,
-    alertTriggered,
-    activeAlerts,
+    metrics: res?.data ?? null,
+    loading: isLoading,
+    error: reportedError,
+    alertTriggered: Boolean(res?.alert_triggered),
+    activeAlerts: res?.active_alerts ?? [],
     lastUpdated,
     liveChartData,
-    refetch: fetchMetrics
+    refetch,
   };
 }
+
+export default useMetrics;

@@ -2,27 +2,25 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import HostSelector from './HostSelector';
 import { useAuth } from '../context/AuthContext';
-import { authService } from '../services/authService';
+import { useDeleteAccountMutation } from '../services/authApi';
 import {
   Activity,
   History,
   Bell,
   Users as UsersIcon,
   LogOut,
-  User,
   Cpu,
-  Shield,
   Trash2,
   ChevronDown,
   AlertTriangle,
-  RefreshCw,
-  X
+  RefreshCw
 } from 'lucide-react';
 
 export default function Navbar({ selectedHost, onSelectHost, syncTime }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [deleteAccountMutation] = useDeleteAccountMutation();
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -38,12 +36,12 @@ export default function Navbar({ selectedHost, onSelectHost, syncTime }) {
     setIsDeleting(true);
     setDeleteError('');
     try {
-      await authService.deleteMyAccount();
+      await deleteAccountMutation().unwrap();
       setShowDeleteModal(false);
       navigate('/login');
     } catch (err) {
       console.error("Error al eliminar cuenta:", err);
-      const msg = err.response?.data?.Error?.Description || err.response?.data?.mensaje;
+      const msg = err.data?.Error?.Description || err.data?.mensaje || err.message;
       setDeleteError(msg || "No se pudo eliminar la cuenta.");
     } finally {
       setIsDeleting(false);

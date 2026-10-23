@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Server, ChevronDown, Check } from 'lucide-react';
-import { metricsService } from '../services/metricsService';
+import { useGetHostsQuery } from '../services/metricsApi';
 
 const DEFAULT_HOSTS = [
   { host_id: 1, hostname: 'Servidor-Principal', ip_address: '192.168.1.100', operating_system: 'Linux Mint / Ubuntu 24.04' },
@@ -10,23 +10,15 @@ const DEFAULT_HOSTS = [
 
 export default function HostSelector({ selectedHost, onSelectHost }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [hosts, setHosts] = useState(DEFAULT_HOSTS);
+  const { data: serverHosts } = useGetHostsQuery();
+
+  const hosts = serverHosts && serverHosts.length > 0 ? serverHosts : DEFAULT_HOSTS;
 
   useEffect(() => {
-    // Consultar lista dinámica de hosts desde el Backend
-    metricsService.getHosts()
-      .then((data) => {
-        if (data && data.length > 0) {
-          setHosts(data);
-          if (!selectedHost && onSelectHost) {
-            onSelectHost(data[0]);
-          }
-        }
-      })
-      .catch(() => {
-        // En caso de fallo de red, se mantienen los hosts por defecto
-      });
-  }, [selectedHost, onSelectHost]);
+    if (!selectedHost && hosts.length > 0 && onSelectHost) {
+      onSelectHost(hosts[0]);
+    }
+  }, [selectedHost, hosts, onSelectHost]);
 
   const current = selectedHost || hosts[0];
 

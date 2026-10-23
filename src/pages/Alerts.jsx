@@ -1,6 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
-import { thresholdsService } from '../services/thresholdsService';
+import {
+  useGetThresholdsQuery,
+  useCreateThresholdMutation,
+  useUpdateThresholdMutation,
+  useDeleteThresholdMutation
+} from '../services/thresholdsApi';
 import {
   Plus,
   Edit2,
@@ -23,9 +28,17 @@ export default function Alerts() {
     operating_system: 'Linux Mint / Ubuntu 24.04'
   });
 
-  const [thresholds, setThresholds] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
+  // RTK Query: Carga reactiva de umbrales con caché e invalidación por tags
+  const {
+    data: thresholds = [],
+    isLoading: loading
+  } = useGetThresholdsQuery(selectedHost.host_id);
+
+  const [createThreshold, { isLoading: isCreating }] = useCreateThresholdMutation();
+  const [updateThreshold, { isLoading: isUpdating }] = useUpdateThresholdMutation();
+  const [deleteThreshold, { isLoading: isDeleting }] = useDeleteThresholdMutation();
+
+  const actionLoading = isCreating || isUpdating || isDeleting;
   const [statusMessage, setStatusMessage] = useState({ type: '', text: '' });
 
   // Modal State
@@ -40,24 +53,6 @@ export default function Alerts() {
   const [formOperator, setFormOperator] = useState('>');
   const [formValue, setFormValue] = useState(80);
   const [formActive, setFormActive] = useState(true);
-
-  // Cargar lista de umbrales desde el Backend PHP
-  const loadThresholds = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await thresholdsService.getThresholds(selectedHost.host_id);
-      setThresholds(data || []);
-    } catch (err) {
-      console.error("Error al cargar umbrales:", err);
-      setStatusMessage({ type: 'error', text: 'No se pudieron cargar los umbrales del backend.' });
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedHost.host_id]);
-
-  useEffect(() => {
-    loadThresholds();
-  }, [loadThresholds]);
 
   // Abrir Modal para Crear
   const handleOpenCreate = () => {
@@ -81,68 +76,59 @@ export default function Alerts() {
     setStatusMessage({ type: '', text: '' });
   };
 
-  // Guardar (Crear / Actualizar en Backend)
+  // Guardar (Crear / Actualizar en Backend con RTK Query)
   const handleSave = async (e) => {
     e.preventDefault();
-    setActionLoading(true);
     setStatusMessage({ type: '', text: '' });
 
     try {
       if (editingRule) {
-        // Actualizar umbral existente
-        const res = await thresholdsService.updateThreshold({
+        // Actualizar umbral existente (invalida tag Threshold automáticamente)
+        const res = await updateThreshold({
           threshold_id: editingRule.threshold_id,
           metric_name: formMetric,
           comparison_operator: formOperator,
           threshold_value: formValue,
           is_active: formActive ? 1 : 0
-        });
+        }).unwrap();
 
         if (res && res.ok) {
           setStatusMessage({ type: 'success', text: 'Umbral actualizado correctamente en la Base de Datos.' });
           setIsModalOpen(false);
-          loadThresholds();
         }
       } else {
-        // Crear nuevo umbral
-        const res = await thresholdsService.createThreshold({
+        // Crear nuevo umbral (invalida tag Threshold automáticamente)
+        const res = await createThreshold({
           host_id: selectedHost.host_id,
           metric_name: formMetric,
           comparison_operator: formOperator,
           threshold_value: formValue
-        });
+        }).unwrap();
 
         if (res && res.ok) {
           setStatusMessage({ type: 'success', text: 'Nuevo umbral guardado exitosamente en la Base de Datos.' });
           setIsModalOpen(false);
-          loadThresholds();
         }
       }
     } catch (err) {
       console.error("Error al guardar umbral:", err);
       setStatusMessage({ type: 'error', text: 'Error al comunicarse con el backend para guardar el umbral.' });
-    } finally {
-      setActionLoading(false);
     }
   };
 
-  // Eliminar Umbral (Confirmado)
+  // Eliminar Umbral (Confirmado con RTK Query)
   const handleDelete = async () => {
     if (!deletingRuleId) return;
-    setActionLoading(true);
 
     try {
-      const res = await thresholdsService.deleteThreshold(deletingRuleId);
+      const res = await deleteThreshold(deletingRuleId).unwrap();
       if (res && res.ok) {
         setStatusMessage({ type: 'success', text: 'Umbral eliminado de la Base de Datos.' });
         setDeletingRuleId(null);
-        loadThresholds();
       }
     } catch (err) {
       console.error("Error al eliminar umbral:", err);
       setStatusMessage({ type: 'error', text: 'No se pudo eliminar el umbral en el servidor.' });
-    } finally {
-      setActionLoading(false);
     }
   };
 

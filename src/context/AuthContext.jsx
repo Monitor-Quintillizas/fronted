@@ -1,40 +1,47 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/authService';
+import React, { createContext, useContext } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { loggedOut } from '../features/auth/authSlice';
+import { useLoginMutation, useLogoutMutation } from '../services/authApi';
 
 const AuthContext = createContext(null);
 
 /**
- * Proveedor de Contexto de Autenticación.
- * Gestiona el estado global de la sesión del usuario a lo largo de toda la SPA.
+ * Proveedor de Compatibilidad de Autenticación respaldado por Redux Toolkit y RTK Query.
+ * Conecta el estado global de auth en el store de Redux con los componentes existentes
+ * (ProtectedRoute, Navbar, Users, etc.), manteniendo su interfaz intacta.
  */
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Al cargar la aplicación, verificamos si existe una sesión guardada en localStorage
-    const savedUser = authService.getCurrentUser();
-    if (savedUser) {
-      setUser(savedUser);
-    }
-    setLoading(false);
-  }, []);
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const loading = useSelector((state) => state.auth.loading);
+  const [loginMutation] = useLoginMutation();
+  const [logoutMutation] = useLogoutMutation();
 
   const login = async (username, password) => {
-    const data = await authService.login(username, password);
-    if (data.ok && data.user) {
-      setUser(data.user);
-    }
+    const data = await loginMutation({ username, password }).unwrap();
     return data;
   };
 
   const logout = async () => {
-    await authService.logout();
-    setUser(null);
+    try {
+      await logoutMutation().unwrap();
+    } catch {
+      // Ignorar errores de red en logout
+    } finally {
+      dispatch(loggedOut());
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: Boolean(user) }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        loading,
+        isAuthenticated: Boolean(user),
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -43,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth debe ser utilizado dentro de un AuthProvider");
+    throw new Error('useAuth debe ser utilizado dentro de un AuthProvider');
   }
   return context;
 };

@@ -1,87 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { authService } from '../services/authService';
+import {
+  useGetUsersPerformanceQuery,
+  useDeleteAccountMutation,
+  useAdminDeleteUserMutation
+} from '../services/authApi';
 import {
   Users as UsersIcon,
   Shield,
-  User,
   Activity,
   Trash2,
   AlertTriangle,
   RefreshCw,
   CheckCircle2,
   X,
-  Server,
-  Cpu,
-  MemoryStick
+  Server
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Users() {
   const navigate = useNavigate();
-  const { user: currentUser, logout } = useAuth();
+  const { user: currentUser } = useAuth();
 
-  const [usersList, setUsersList] = useState([]);
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [onlineUsers, setOnlineUsers] = useState(0);
-  const [loading, setLoading] = useState(true);
+  // RTK Query: Sondeo cada 4s y suscripción reactiva
+  const {
+    data: res,
+    isLoading: loading,
+    refetch
+  } = useGetUsersPerformanceQuery(undefined, {
+    pollingInterval: 4000,
+  });
+
+  const [deleteMyAccount, { isLoading: isDeletingMine }] = useDeleteAccountMutation();
+  const [adminDeleteUser, { isLoading: isDeletingAdmin }] = useAdminDeleteUserMutation();
+
+  const usersList = res?.data || [];
+  const totalUsers = res?.total_users || usersList.length;
+  const onlineUsers = res?.online_users || 0;
+
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState('');
-
   const [userToDelete, setUserToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchUsers = async () => {
-    try {
-      setError(null);
-      const res = await authService.getAllUsersPerformance();
-      if (res && res.ok) {
-        setUsersList(res.data || []);
-        setTotalUsers(res.total_users || (res.data ? res.data.length : 0));
-        setOnlineUsers(res.online_users || 0);
-      }
-    } catch (err) {
-      console.error("Error al consultar usuarios:", err);
-      setError("No se pudo cargar la lista de cuentas desde la base de datos.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-    const timer = setInterval(fetchUsers, 4000);
-    return () => clearInterval(timer);
-  }, []);
+  const isDeleting = isDeletingMine || isDeletingAdmin;
 
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
-    setIsDeleting(true);
     setError(null);
     setSuccessMsg('');
 
     try {
       if (userToDelete.user_id === currentUser?.user_id) {
-        await authService.deleteMyAccount();
+        await deleteMyAccount().unwrap();
         setUserToDelete(null);
         navigate('/login');
       } else {
-        const res = await authService.adminDeleteUser(userToDelete.user_id);
-        if (res && res.ok) {
+        const result = await adminDeleteUser(userToDelete.user_id).unwrap();
+        if (result && result.ok) {
           setSuccessMsg(`La cuenta de ${userToDelete.username} ha sido eliminada.`);
           setUserToDelete(null);
-          fetchUsers();
+          // RTK Query invalida tag 'User' y vuelve a pedir la lista automáticamente
         } else {
-          setError(res?.mensaje || "No se pudo eliminar la cuenta.");
+          setError(result?.mensaje || "No se pudo eliminar la cuenta.");
         }
       }
     } catch (err) {
       console.error("Error al eliminar cuenta:", err);
-      const msg = err.response?.data?.Error?.Description || err.response?.data?.mensaje;
+      const msg = err.data?.Error?.Description || err.data?.mensaje || err.message;
       setError(msg || "Error al procesar la eliminación en la base de datos.");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -127,10 +114,7 @@ export default function Users() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setLoading(true);
-                  fetchUsers();
-                }}
+                onClick={() => refetch()}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 text-xs font-semibold rounded-none border border-slate-800 transition-all cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-blue-400' : ''}`} />

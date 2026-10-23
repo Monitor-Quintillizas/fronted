@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
-import { metricsService } from '../services/metricsService';
+import { useLazyGetHistoryQuery } from '../services/metricsApi';
 import {
   Search,
   Database,
@@ -44,6 +44,8 @@ export default function History() {
   const [validationError, setValidationError] = useState('');
   const [serverMessage, setServerMessage] = useState('');
 
+  const [triggerGetHistory] = useLazyGetHistoryQuery();
+
   const fetchHistory = useCallback(async () => {
     setValidationError('');
     setServerMessage('');
@@ -56,7 +58,12 @@ export default function History() {
     setLoading(true);
 
     try {
-      const res = await metricsService.getHistory(selectedHost.host_id, startDate, endDate);
+      const res = await triggerGetHistory({
+        hostId: selectedHost.host_id,
+        startDate,
+        endDate
+      }).unwrap();
+
       if (res && res.ok) {
         const rawData = res.data || [];
         setHistoryData(rawData);
@@ -72,7 +79,7 @@ export default function History() {
     } finally {
       setLoading(false);
     }
-  }, [selectedHost.host_id, startDate, endDate]);
+  }, [selectedHost.host_id, startDate, endDate, triggerGetHistory]);
 
   useEffect(() => {
     fetchHistory();
