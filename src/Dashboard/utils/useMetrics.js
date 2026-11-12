@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useGetMetricsQuery } from '../services/metricsApi';
+import { useGetMetricsQuery } from '../../services/metricsApi';
 
 /**
  * Custom Hook: useMetrics (adaptado a RTK Query)
