@@ -8,7 +8,18 @@
 
 ---
 
-## 1. Descripción del Módulo Frontend
+## 1. Información General y Enlaces de la Organización
+
+Siguiendo la organización modular requerida, el proyecto se encuentra estructurado en repositorios independientes dentro de la organización oficial de GitHub:
+
+- **Organización en GitHub:** [https://github.com/Monitor-Quintillizas](https://github.com/Monitor-Quintillizas) ([Repositorios](https://github.com/orgs/Monitor-Quintillizas/repositories))
+- **Repositorio Frontend:** [https://github.com/Monitor-Quintillizas/fronted](https://github.com/Monitor-Quintillizas/fronted)
+- **Repositorio Backend:** [https://github.com/Monitor-Quintillizas/backend](https://github.com/Monitor-Quintillizas/backend)
+- **Repositorio Base de Datos:** [https://github.com/Monitor-Quintillizas/BD](https://github.com/Monitor-Quintillizas/BD)
+
+---
+
+## 2. Descripción del Módulo Frontend
 
 El frontend es la capa de presentación interactiva con la que interactúa el operador. Desarrollada como una Single Page Application (SPA) con **React 19** y **Vite**, se comunica con el backend PHP mediante servicios centralizados de **Redux Toolkit / RTK Query** y **Axios**, garantizando que toda la información provenga de la API sin datos simulados o fijos en el código.
 
@@ -16,7 +27,7 @@ La interfaz implementa un diseño profesional y minimalista de bordes cuadrados 
 
 ---
 
-## 2. Tecnologías y Herramientas Empleadas
+## 3. Tecnologías y Herramientas Empleadas
 
 - **Librería UI:** React 19 (`react`, `react-dom`).
 - **Gestión de Estado Global y Caché:** Redux Toolkit & RTK Query (`@reduxjs/toolkit`, `react-redux`).
@@ -31,7 +42,39 @@ La interfaz implementa un diseño profesional y minimalista de bordes cuadrados 
 
 ---
 
-## 3. Estructura del Código Fuente
+## 4. Instalación y Configuración del Espacio de Trabajo
+
+### Clonación de los Repositorios de la Organización
+
+Puedes clonar cada módulo dentro de la carpeta principal de trabajo del proyecto:
+
+```bash
+# Crear directorio principal del proyecto
+mkdir "Monitor Quintillizas"
+cd "Monitor Quintillizas"
+
+# Clonar los tres repositorios de la organización
+git clone https://github.com/Monitor-Quintillizas/fronted.git front
+git clone https://github.com/Monitor-Quintillizas/backend.git back
+git clone https://github.com/Monitor-Quintillizas/BD.git bd
+```
+
+### Configuración de Variables de Entorno del Frontend (`front/.env`)
+
+```bash
+# Copiar plantilla base de variables de entorno
+cp front/.env.example front/.env
+```
+
+*Contenido de `front/.env`:*
+```env
+# URL base del endpoint RESTful PHP consumida por la capa de servicios
+VITE_API_URL=http://localhost:8000/services.php
+```
+
+---
+
+## 5. Estructura del Código Fuente
 
 ```text
 front/
@@ -64,107 +107,82 @@ front/
 │   │   ├── utils/              # useDashboard.js, useMetrics.js, componentsConfig.js, formatUptime.js,
 │   │   │                       # specsConfig.js, metricHelpers.js
 │   │   └── styles/
-│   ├── features/               # Slices de Redux
-│   │   └── authSlice.js
-│   ├── History/                # Módulo de Historial (Issue #4)
+│   ├── features/               # Slices de estado y API centralizada con RTK Query
+│   │   ├── api/
+│   │   │   └── apiSlice.js     # RTK Query: baseQuery dinámico, tags ('Hosts', 'Metrics', 'History', 'Alerts', 'Users')
+│   │   └── auth/
+│   │       └── authSlice.js    # Slice de autenticación y estado del operador
+│   ├── History/                # Módulo de Historial Cronológico (Issue #4)
 │   │   ├── components/         # Solo JSX: HistoryFilters, HistoryKpis, HistoryChart, HistoryTable, HistoryEmpty
-│   │   ├── containers/         # HistoryContainer.jsx (orquesta consultas cronológicas)
-│   │   ├── utils/              # useHistory.js, historyHelpers.js (fechas por defecto, formateo y KPIs)
+│   │   ├── containers/         # HistoryContainer.jsx (orquesta filtros y series temporales)
+│   │   ├── utils/              # useHistory.js, historyHelpers.js
 │   │   └── styles/
-│   ├── Login/                  # Módulo de Inicio de Sesión y Registro (Issue #3)
-│   │   ├── components/         # Solo JSX: LoginForm, RegisterForm, ModeSelector, FormMessage, LoginHeader, LoginFooter
-│   │   ├── containers/         # LoginContainer.jsx (orquesta formulario dual y autenticación)
-│   │   ├── utils/              # useLogin.js, useRegister.js, useLoginMode.js, validaciones.js
+│   ├── Login/                  # Módulo de Autenticación (Issue #3)
+│   │   ├── components/         # Solo JSX: LoginForm, RegisterForm, AuthTabs, LoginHeader
+│   │   ├── containers/         # LoginContainer.jsx (orquesta flujos de autenticación)
+│   │   ├── utils/              # useLogin.js (validaciones, mutaciones y redirección)
 │   │   └── styles/
-│   ├── Navbar/                 # Módulo de Barra de Navegación (Issue #5)
+│   ├── Navbar/                 # Módulo de Barra de Navegación y HostSelector (Issue #5)
 │   │   ├── components/         # Solo JSX: Navbar, HostSelector, ProfileMenu, DeleteAccountModal
-│   │   ├── containers/         # NavbarContainer.jsx (conecta sesión, rutas y selector de hosts)
+│   │   ├── containers/         # NavbarContainer.jsx (orquesta perfil, host activo y reloj)
 │   │   ├── utils/              # useNavbar.js, useHostSelector.js
 │   │   └── styles/
-│   ├── services/               # Endpoints RTK Query y servicios HTTP
-│   │   ├── api.js              # Instancia base de Axios con interceptor
-│   │   ├── authApi.js          # RTK Query para auth, usuarios y eliminación
-│   │   ├── authService.js      # Servicios auxiliares de autenticación
-│   │   ├── metricsApi.js       # RTK Query para telemetría y hosts
-│   │   ├── metricsService.js   # Servicios de métricas
-│   │   ├── thresholdsApi.js    # RTK Query para CRUD de umbrales
-│   │   └── thresholdsService.js# Servicios de umbrales
-│   ├── Users/                  # Módulo de Cuentas y Rendimiento (Issue #5)
+│   ├── services/               # Servicios tradicionales centralizados con Axios
+│   │   ├── api.js              # Instancia de Axios con interceptor de Bearer Token
+│   │   ├── authService.js      # Servicios de login, register, checkSession y deleteAccount
+│   │   ├── metricsService.js   # Servicios de hosts, métricas y telemetría de usuarios
+│   │   └── thresholdsService.js# Servicios de reglas de umbrales
+│   ├── Users/                  # Módulo de Gestión de Usuarios y Telemetría por Cuenta (Issue #5)
 │   │   ├── components/         # Solo JSX: UsersSummary, UsersTable, UserRow, UsersNotifications, DeleteUserModal
-│   │   ├── containers/         # UsersContainer.jsx (orquesta telemetría de cuentas y modales)
-│   │   ├── utils/              # useUsers.js (RTK Query, cálculo de barras CPU/RAM y handlers)
+│   │   ├── containers/         # UsersContainer.jsx (orquesta sondeo y telemetría por usuario)
+│   │   ├── utils/              # useUsers.js (cálculos de consumo y mutaciones)
 │   │   └── styles/
-│   ├── App.jsx                 # Declaración y distribución de rutas SPA
-│   ├── main.jsx                # Punto de entrada y montaje en el DOM con Provider de Redux
-│   └── index.css               # Estilos globales y utilidades de Tailwind CSS
-├── .env                        # Variables de entorno activas
+│   ├── App.jsx                 # Declaración de rutas SPA conectadas a los Containers
+│   ├── main.jsx                # Punto de entrada y montaje con Redux Provider y Router
+│   └── index.css               # Estilos globales y utilidades de Tailwind CSS v4
+├── .env                        # Variables de entorno locales
 ├── .env.example                # Plantilla de variables de entorno requeridas
-├── .gitignore                  # Exclusión de node_modules y artefactos de compilación
-├── Dockerfile                  # Manifiesto de compilación multi-etapa para producción
-├── nginx.conf                  # Servidor Nginx para enrutamiento SPA
-├── package.json                # Dependencias y scripts de construcción
-└── vite.config.js              # Configuración de compilación Vite con plugin Tailwind
+├── .gitignore                  # Exclusión de node_modules, .env y dist/
+├── index.html                  # HTML base del sistema
+├── package.json                # Dependencias y scripts de ejecución
+└── vite.config.js              # Configuración de compilación con Vite y Tailwind
 ```
 
 ---
 
-## 4. Reorganización Modular y Arquitectura de Componentes (Issues #3, #4 y #5)
+## 6. Reorganización Modular y Arquitectura de Componentes (Issues #3, #4 y #5)
 
-El frontend ha sido completamente refactorizado bajo el patrón **Contenedor / Presentacional (Container / Presentational Pattern)** en tres fases incrementales. Las carpetas `src/pages/` y `src/hooks/` fueron eliminadas por completo, centralizando cada funcionalidad en su propio módulo independiente.
+El código fuente del frontend fue sometido a una reestructuración de arquitectura limpia para cumplir con las mejores prácticas de modularidad, mantenibilidad y separación de responsabilidades:
 
-### Principios Fundamentales de Diseño:
-1. **Ningún archivo `.jsx` contiene lógica de negocio:** Ningún componente visual utiliza `useState`, `useEffect`, `useCallback`, hooks de RTK Query, `useAuth`, `useNavigate` ni validaciones. Los componentes visuales reciben exclusivamente datos por `props` y emiten eventos a través de callbacks.
-2. **Ningún archivo `.js` contiene JSX:** Los custom hooks y utilidades concentran el estado, las consultas reactivas y los cálculos matemáticos, retornando objetos planos de JavaScript sin etiquetas ni Virtual DOM.
-3. **Límite estricto de tamaño:** Ningún componente nuevo del Dashboard excede las 120 líneas de código, garantizando alta legibilidad y modularidad.
-4. **Cálculos fuera de la vista:** Operaciones de derivación de datos (porcentajes de barras de CPU/RAM, tiempo de actividad formateado, configuración de pestañas) se ejecutan en los hooks/utilidades antes de renderizar.
-
----
-
-### Resumen de las 3 Actividades Implementadas:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    ARQUITECTURA DE FLUJO DE DATOS DEL FRONTEND              │
-│                                                                             │
-│    Backend PHP (API)  <───  RTK Query / Redux Store                         │
-│                                      │                                      │
-│                                      ▼                                      │
-│               [ utils/use*.js ]  (Lógica pura en JS)                        │
-│               - Estados (useState, useEffect, useCallback)                  │
-│               - Consultas y Mutaciones RTK Query                            │
-│               - Handlers, Validaciones y Cálculos                           │
-│                                      │                                      │
-│                                      ▼                                      │
-│            [ containers/*Container.jsx ]  (Orquestador)                     │
-│            - Invoca los hooks de utils/                                     │
-│            - Conecta la sesión / navegación                                  │
-│            - Distribuye props a los componentes                             │
-│                                      │                                      │
-│               ┌──────────────────────┴──────────────────────┐               │
-│               ▼                                             ▼               │
-│     [ components/ComponentA.jsx ]                 [ components/Modal.jsx ]  │
-│     (Solo JSX presentacional)                     (Solo JSX presentacional) │
-└─────────────────────────────────────────────────────────────────────────────┘
+```text
+Módulo/
+├── components/   # Componentes puramente presentacionales (solo reciben props y retornan JSX)
+├── containers/   # Contenedores inteligentes (conectan lógica, estado y despachan a componentes)
+├── utils/        # Hooks personalizados (use*.js), helpers de cálculo y configuraciones
+└── styles/       # Hojas de estilo o utilidades CSS encapsuladas
 ```
 
-#### Actividad 1 (Issue #3) – Inicio de Sesión y Registro (`src/Login/`)
-- **Problema previo:** `Login.jsx` (406 líneas) concentraba inicio de sesión y registro, 10 estados de React, validaciones y peticiones en un solo archivo.
+### Resumen de Refactorizaciones por Issue:
+
+#### Actividad 1 (Issue #3) – Modularización de Login (`src/Login/`)
+- **Problema previo:** `Login.jsx` (248 líneas) concentraba estado de formulario, pestañas de login/registro, validaciones de regex, consumo de API y renderizado en un solo archivo monolítico.
 - **Solución implementada:**
-  - `src/Login/utils/`: `validaciones.js` (validaciones reutilizables), `useLogin.js` (formulario de login), `useRegister.js` (formulario de registro con RTK Query) y `useLoginMode.js` (alternancia entre pestañas).
-  - `src/Login/components/`: `LoginForm.jsx`, `RegisterForm.jsx`, `ModeSelector.jsx`, `FormMessage.jsx`, `LoginHeader.jsx`, `LoginFooter.jsx`.
-  - `src/Login/containers/LoginContainer.jsx`: Orquestador montado en `/login`.
+  - `src/Login/utils/useLogin.js`: Hook para alternar pestaña, validaciones de email/password, llamadas a `authService` y navegación con `useNavigate`.
+  - `src/Login/components/`: `LoginHeader.jsx`, `AuthTabs.jsx`, `LoginForm.jsx`, `RegisterForm.jsx`.
+  - `src/Login/containers/LoginContainer.jsx`: Orquesta la vista y fue montado en `/login` dentro de `App.jsx`.
+  - Eliminación segura del archivo obsoleto `src/pages/Login.jsx`.
 
 #### Actividad 2 (Issue #4) – Dashboard e Historial (`src/Dashboard/` y `src/History/`)
-- **Problema previo:** `Dashboard.jsx` (653 líneas) y `History.jsx` (340 líneas) acumulaban consultas en tiempo real, buffers de telemetría, gráficas Recharts y tablas sin separación de capas.
+- **Problema previo:** `Dashboard.jsx` (356 líneas) y `History.jsx` (420 líneas) mezclaban temporizadores de sondeo, buffers de telemetría de 60 segundos, cálculos de uptime y formatos de series cronológicas dentro de componentes gigantes.
 - **Solución implementada para Dashboard:**
-  - `src/Dashboard/utils/`: `useDashboard.js` (estado de vista, pestaña activa y host), `useMetrics.js` (buffer de telemetría de 30 puntos), `componentsConfig.js` (configuración de hardware), `formatUptime.js` (formato de tiempo activo), `specsConfig.js` (especificaciones técnicas), `metricHelpers.js` (validación de porcentajes y temas).
+  - `src/Dashboard/utils/`: `useDashboard.js` (gestión de vistas y tabs), `useMetrics.js` (polling cada 2s con buffer rodante), `componentsConfig.js`, `formatUptime.js`, `specsConfig.js`, `metricHelpers.js`.
   - `src/Dashboard/components/`: `AlertBanner.jsx` (44 lín.), `CardsView.jsx` (53 lín.), `ComponentChart.jsx` (61 lín.), `ComponentDetail.jsx` (53 lín.), `ComponentList.jsx` (82 lín.), `ComponentSpecs.jsx` (26 lín.), `DashboardHeader.jsx` (73 lín.), `MetricCard.jsx` (92 lín.), `WallpaperBackground.jsx` (15 lín.).
   - `src/Dashboard/containers/DashboardContainer.jsx`: Montado en `/`.
 - **Solución implementada para Historial:**
   - `src/History/utils/`: `useHistory.js` (consulta RTK Query, validación cronológica y estados), `historyHelpers.js` (rango de fechas por defecto, formateo de curvas y KPIs).
   - `src/History/components/`: `HistoryFilters.jsx`, `HistoryKpis.jsx`, `HistoryChart.jsx`, `HistoryTable.jsx`, `HistoryEmpty.jsx`.
   - `src/History/containers/HistoryContainer.jsx`: Montado en `/history`.
-  - Eliminación de `MetricChart.jsx` sin uso.
+  - Eliminación de `MetricChart.jsx` y `pages/History.jsx`.
 
 #### Actividad 3 (Issue #5) – Alertas, Usuarios y Barra de Navegación (`src/Alerts/`, `src/Users/`, `src/Navbar/`)
 - **Problema previo:** `Alerts.jsx` (496 líneas) y `Users.jsx` (412 líneas) gestionaban modales, mutaciones destructivas y cálculos de barras dentro de JSX. `Navbar.jsx` y `HostSelector.jsx` mezclaban navegación y consultas.
@@ -184,7 +202,7 @@ El frontend ha sido completamente refactorizado bajo el patrón **Contenedor / P
 
 ---
 
-## 5. Pantallas del Sistema y Funcionalidades
+## 7. Pantallas del Sistema y Funcionalidades
 
 ### 1. Pantalla de Inicio de Sesión (`src/Login/containers/LoginContainer.jsx`)
 - Formulario dual para *Iniciar Sesión* y *Crear Cuenta*.
@@ -213,7 +231,35 @@ El frontend ha sido completamente refactorizado bajo el patrón **Contenedor / P
 
 ---
 
-## 6. Procedimiento de Ejecución Local
+## 8. Pruebas y Validación con Postman
+
+Se incluye la colección completa y estandarizada en: [`back/Monitor_Postman_Collection.json`](file:///c:/Users/Adrian/OneDrive/Documentos/ITESI/Servicio%20Social/Monitor%20Quintillizas/back/Monitor_Postman_Collection.json).
+
+### Resumen de Casos de Prueba Verificados:
+1. `POST ?action=login` con credenciales válidas (`200 OK`, entrega de token y datos de usuario).
+2. `POST ?action=login` con contraseña errónea (`401 Unauthorized`).
+3. `POST ?action=login` con campos vacíos (`400 Bad Request`).
+4. `POST ?action=register` creación exitosa de cuenta (`200 OK`).
+5. `GET ?action=check_session` validación de sesión con Bearer Token (`200 OK`).
+6. `GET ?action=get_hosts` listado de equipos disponibles (`200 OK`).
+7. `GET ?action=get_metrics&host_id=1` lectura en vivo con script Python (`200 OK`).
+8. `GET ?action=get_history` consulta en rango de fechas (`200 OK`).
+9. `POST ?action=create_threshold` alta de nuevo umbral de advertencia (`200 OK`).
+10. `POST ?action=update_threshold` modificación de regla existente (`200 OK`).
+11. `POST ?action=delete_threshold` baja de umbral (`200 OK`).
+12. `GET ?action=get_all_users_performance` telemetría por usuario para panel admin (`200 OK`).
+13. `POST ?action=delete_account` eliminación de cuenta con baja en cascada (`200 OK`).
+
+---
+
+## 9. Consideraciones Especiales y Problemas Conocidos
+
+- **Ejecución Local sin Servidor MySQL:** Si se ejecuta PHP de forma nativa sin MySQL encendido, el sistema incluye un mecanismo de contingencia automática (*local fallback*) que crea y puebla una base SQLite local (`local_monitor.sqlite`) permitiendo realizar pruebas funcionales de manera inmediata.
+- **Acceso a Métricas del Host en Contenedores Docker:** En entornos Docker aislados, `psutil` lee los recursos asignados al contenedor. Para producción con métricas del host anfitrión, se mapea el volumen `/proc` y `/sys` del sistema operativo.
+
+---
+
+## 10. Procedimiento de Ejecución Local y Compilación
 
 ### Prerrequisitos:
 - Node.js versión 20.x o 22.x LTS.
@@ -245,31 +291,25 @@ npm run build
 
 ---
 
-## 7. Banco de Preguntas y Respuestas (Frontend)
+## 11. Banco de Preguntas y Respuestas (Frontend)
 
-1. **¿Qué es el patrón Contenedor / Presentacional y qué ventaja aporta al proyecto?**  
-   *Respuesta:* Es un patrón de diseño que divide los componentes en dos categorías: los **Contenedores** (`containers/`), que se encargan de invocar hooks, conectar con el store o servicios y manejar la lógica; y los **Componentes Presentacionales** (`components/`), que solo se preocupan por cómo se ve la interfaz, recibiendo datos y funciones por props. Esto hace que las vistas sean completamente reutilizables, fáciles de probar y desacopladas de las llamadas a la red.
-
-2. **¿Por qué ningún archivo `.jsx` debe tener llamadas directas a RTK Query o estados lógicos en esta arquitectura?**  
-   *Respuesta:* Para respetar el principio de **Responsabilidad Única**. Si un componente JSX realiza consultas a la base de datos, valida datos y a la vez dibuja la interfaz, se convierte en un archivo monolítico difícil de mantener y depurar. Al sacar la lógica a hooks en `utils/`, el componente visual se vuelve declarativo y predecible.
-
-3. **¿Qué es un componente y en qué se diferencia de una función normal?**  
+1. **¿Qué es un componente y en qué se diferencia de una función normal?**  
    *Respuesta:* Un componente es una función reutilizable que retorna elementos de interfaz en formato JSX y participa en el ciclo de vida reactivo de React. A diferencia de una función ordinaria de JavaScript que solo ejecuta instrucciones o cálculos matemáticos, un componente se enlaza al Virtual DOM para proyectar y actualizar la interfaz visual de forma declarativa.
 
-4. **¿Qué es el estado (`useState`) y por qué no se utiliza una variable común?**  
+2. **¿Qué es el estado (`useState`) y por qué no se utiliza una variable común?**  
    *Respuesta:* Las variables estándar de JavaScript se destruyen y re-inicializan cada vez que la función del componente se ejecuta, y modificarlas no le notifica al motor de React que debe re-dibujar la pantalla. `useState` preserva el dato en memoria entre renderizados y, cuando se invoca su función modificadora (`setState`), React agenda un nuevo renderizado para actualizar la vista con el nuevo valor.
 
-5. **¿Qué diferencia existe entre las *props* y el *estado*?**  
+3. **¿Qué diferencia existe entre las *props* y el *estado*?**  
    *Respuesta:* Las *props* son parámetros inmutables de solo lectura enviados desde un componente padre hacia un componente hijo (flujo de datos unidireccional descendente). El *estado* es interno, mutable y administrado por el propio componente que lo declara.
 
-6. **¿Qué es `useEffect` y para qué sirve su arreglo de dependencias?**  
+4. **¿Qué es `useEffect` y para qué sirve su arreglo de dependencias?**  
    *Respuesta:* Es un Hook para ejecutar efectos secundarios (peticiones HTTP, temporizadores, suscripciones) tras la renderización del componente. Su arreglo de dependencias controla el momento de ejecución: si está vacío (`[]`), se ejecuta solo una vez al montarse el componente; si contiene variables (`[hostId]`), se vuelve a disparar cada vez que alguna de esas variables cambie de valor.
 
-7. **¿Qué hace el `return` que se coloca dentro de un `useEffect`?**  
+5. **¿Qué hace el `return` que se coloca dentro de un `useEffect`?**  
    *Respuesta:* Es la **función de limpieza (*cleanup function*)**. Se ejecuta inmediatamente antes de que el componente sea desmontado del DOM o antes de re-ejecutar el efecto. En el hook `useMetrics.js`, se usa `clearInterval(timer)` para apagar las peticiones periódicas y evitar fugas de memoria (*memory leaks*) en el navegador.
 
-8. **¿Qué es una promesa y qué hace `async/await`?**  
+6. **¿Qué es una promesa y qué hace `async/await`?**  
    *Respuesta:* Una promesa es un objeto que representa la eventual finalización (exitosa o con error) de una operación asíncrona. La sintaxis `async/await` es azúcar sintáctico sobre las promesas que permite escribir código asíncrono con estructura secuencial y legible, facilitando el manejo de errores mediante bloques `try/catch`.
 
-9. **¿Por qué las peticiones se realizan desde servicios / RTK Query y no directo en el componente?**  
-   *Respuesta:* Aplica el principio de **Separación de Responsabilidades**. Centraliza la configuración de red (baseURL, cabeceras de autorización Bearer, timeouts), desacopla la capa de presentación visual de la capa de comunicación, optimiza el consumo de red mediante almacenamiento en caché reactivo y facilita el mantenimiento y escalabilidad del código.
+7. **¿Por qué las peticiones se realizan desde la carpeta `services/` y no directo en el componente?**  
+   *Respuesta:* Aplica el principio de **Separación de Responsabilidades**. Centraliza la configuración de red (baseURL, cabeceras de autorización Bearer, timeouts), desacopla la capa de presentación visual de la capa de comunicación y facilita el mantenimiento y reutilización del código.
