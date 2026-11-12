@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from '../../components/Navbar';
+import NavbarContainer from '../../Navbar/containers/NavbarContainer';
 import { useHistory } from '../utils/useHistory';
 import HistoryFilters from '../components/HistoryFilters';
 import HistoryKpis from '../components/HistoryKpis';
@@ -42,7 +42,7 @@ export default function HistoryContainer() {
       </div>
 
       <div className="relative z-10">
-        <Navbar selectedHost={selectedHost} onSelectHost={setSelectedHost} />
+        <NavbarContainer selectedHost={selectedHost} onSelectHost={setSelectedHost} />
 
         <main className="max-w-7xl mx-auto px-4 lg:px-8 space-y-4">
           <div>
@@ -95,3 +95,4 @@ export default function HistoryContainer() {
     </div>
   );
 }
+

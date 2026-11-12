@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from '../../components/Navbar';
+import NavbarContainer from '../../Navbar/containers/NavbarContainer';
 import { useDashboard } from '../utils/useDashboard';
 import WallpaperBackground from '../components/WallpaperBackground';
 import AlertBanner from '../components/AlertBanner';
@@ -37,7 +37,7 @@ export default function DashboardContainer() {
       <WallpaperBackground bgImage={currentTheme.bgImage} />
 
       <div className="relative z-10">
-        <Navbar
+        <NavbarContainer
           selectedHost={{
             ...selectedHost,
             hostname: hostnameDisplay
@@ -92,3 +92,4 @@ export default function DashboardContainer() {
     </div>
   );
 }
+
